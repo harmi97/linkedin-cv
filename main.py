@@ -24,6 +24,8 @@ PROFILE_FILE = "Profile.csv"
 SINGLETON_FILES = {PROFILE_FILE}
 LIST_FILES = set(FILES_TO_EXTRACT) - SINGLETON_FILES
 
+TEMPLATES = {"basic": "templates/basic.html"}
+
 
 def _normalize(name: str) -> str:
     return re.sub(r"[^a-zA-Z0-9]+", "_", name).strip("_").lower()
@@ -85,17 +87,42 @@ def extract_files(zip_path: Path, tmpdir: str) -> dict[str, Path]:
     return extracted
 
 
-def main(zip_path: str, output_file: str | None = None):
-    zip_path = validate_zip_path(zip_path)
-    if not zip_path:
-        return
+def main(zip_path: str | None, output_file: str | None = None, test_run: bool = False):
+    if not test_run and not zip_path:
+        parser.error("zip_path is required when --test-run is not used")
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        extracted = extract_files(zip_path, tmpdir)
-        data = load_data(extracted)
+    if test_run:
+        samples_dir = Path("samples/input")
 
-    output = Path(output_file) if output_file else Path("cv.html")
-    html = render(Path("template.html"), data)
+        with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as tmp_zip:
+            zip_path_obj = Path(tmp_zip.name)
+
+        try:
+            with zipfile.ZipFile(zip_path_obj, "w") as zipf:
+                for csv_file in FILES_TO_EXTRACT:
+                    csv_path = samples_dir / csv_file
+                    if csv_path.exists():
+                        zipf.write(csv_path, csv_file)
+
+            with tempfile.TemporaryDirectory() as tmpdir:
+                extracted = extract_files(zip_path_obj, tmpdir)
+                data = load_data(extracted)
+        finally:
+            zip_path_obj.unlink(missing_ok=True)
+
+        output = Path("cv.html")
+    else:
+        zip_path_validated = validate_zip_path(zip_path)
+        if not zip_path_validated:
+            return
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            extracted = extract_files(zip_path_validated, tmpdir)
+            data = load_data(extracted)
+
+        output = Path(output_file) if output_file else Path("cv.html")
+
+    html = render(Path(TEMPLATES["basic"]), data)
     output.write_text(html, encoding="utf-8")
     print(f"CV generated: {output.resolve()}")
 
@@ -104,9 +131,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="Linkedin CV", description="Creates a CV from a LinkedIn ZIP file"
     )
-    parser.add_argument("zip_path", help="Path to the LinkedIn ZIP file")
+    parser.add_argument("zip_path", nargs="?", help="Path to the LinkedIn ZIP file")
     parser.add_argument(
         "--output_file", help="Path for the generated CV HTML (default: cv.html)"
     )
+    parser.add_argument(
+        "--test-run", action="store_true", help="Run with sample data from samples/input/"
+    )
     args = parser.parse_args()
-    main(zip_path=args.zip_path, output_file=args.output_file)
+    main(zip_path=args.zip_path, output_file=args.output_file, test_run=args.test_run)

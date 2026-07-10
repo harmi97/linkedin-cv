@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{{ profile.first_name }} {{ profile.last_name }} - CV</title>
+        <style>
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                font-family:
+                    "Segoe UI",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    Roboto,
+                    sans-serif;
+                font-size: 12pt;
+                line-height: 1.5;
+                color: #222;
+                background: #eee;
+                padding: 40px 20px;
+            }
+            .page {
+                max-width: 210mm;
+                margin: 0 auto;
+                background: #fff;
+                padding: 30mm 20mm;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            }
+            h1 {
+                font-size: 26pt;
+                margin-bottom: 2pt;
+            }
+            .headline {
+                font-size: 14pt;
+                color: #555;
+                margin-bottom: 12pt;
+            }
+            .section {
+                margin-top: 18pt;
+            }
+            .section-title {
+                font-size: 14pt;
+                font-weight: 600;
+                border-bottom: 2px solid #222;
+                padding-bottom: 4pt;
+                margin-bottom: 10pt;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+            .entry + .entry {
+                margin-top: 12pt;
+            }
+            .entry-title {
+                font-weight: 600;
+                font-size: 12pt;
+            }
+            .entry-sub {
+                color: #555;
+                font-size: 11pt;
+            }
+            .entry-date {
+                color: #777;
+                font-size: 10pt;
+                white-space: nowrap;
+            }
+            .entry-desc {
+                margin-top: 4pt;
+                font-size: 11pt;
+            }
+            .grid-2 {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 6pt 20pt;
+            }
+            .summary {
+                font-size: 11pt;
+                line-height: 1.6;
+                margin-top: 10pt;
+            }
+            .contact {
+                font-size: 10pt;
+                color: #444;
+                margin-bottom: 16pt;
+            }
+            .contact span + span::before {
+                content: "  |  ";
+                color: #aaa;
+            }
+            a {
+                color: #2563eb;
+                text-decoration: none;
+            }
+            @media print {
+                body {
+                    background: none;
+                    padding: 0;
+                }
+                .page {
+                    box-shadow: none;
+                    padding: 18mm 20mm;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="page">
+            <h1>{{ profile.first_name }} {{ profile.last_name }}</h1>
+            <div class="headline">{{ profile.headline }}</div>
+
+            <div class="contact">
+                {% for p in phonenumbers %}
+                <span>{{ p.type }} {{ p.number }}</span>
+                {% endfor %} {% for e in email_addresses %}
+                <span>{{ e.email_address }}</span>
+                {% endfor %}
+            </div>
+
+            {% if profile.summary %}
+            <div class="section">
+                <div class="section-title">Summary</div>
+                <div class="summary">{{ profile.summary }}</div>
+            </div>
+            {% endif %} {% if positions %}
+            <div class="section">
+                <div class="section-title">Experience</div>
+                {% for p in positions %}
+                <div class="entry">
+                    <div class="entry-title">{{ p.title }}</div>
+                    <div class="entry-sub">
+                        {{ p.company_name }} &mdash; {{ p.location }}
+                    </div>
+                    <div class="entry-date">
+                        {{ p.started_on }} &ndash; {{ "Now" if not p.finished_on
+                        or p.finished_on == "Present" else p.finished_on }}
+                    </div>
+                    <div class="entry-desc">{{ p.description }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %} {% if education %}
+            <div class="section">
+                <div class="section-title">Education</div>
+                {% for e in education %}
+                <div class="entry">
+                    <div class="entry-title">{{ e.school_name }}</div>
+                    <div class="entry-sub">
+                        {{ e.degree_name }}{% if e.activities %}, {{
+                        e.activities }}{% endif %}
+                    </div>
+                    <div class="entry-date">
+                        {{ e.start_date }} &ndash; {{ e.end_date }}
+                    </div>
+                    <div class="entry-desc">{{ e.notes }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %} {% if skills %}
+            <div class="section">
+                <div class="section-title">Skills</div>
+                <p>
+                    {% for s in skills %}{{ s.name }}{% if not loop.last %}, {%
+                    endif %}{% endfor %}
+                </p>
+            </div>
+            {% endif %} {% if certifications %}
+            <div class="section">
+                <div class="section-title">Certifications</div>
+                {% for c in certifications %}
+                <div class="entry">
+                    <div class="entry-title">{{ c.name }}</div>
+                    <div class="entry-sub">
+                        {{ c.authority }}{% if c.license_number %} &bull; {{
+                        c.license_number }}{% endif %}
+                    </div>
+                    <div class="entry-date">
+                        {{ c.started_on }} &ndash; {{ c.finished_on }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %} {% if languages %}
+            <div class="section">
+                <div class="section-title">Languages</div>
+                <div class="grid-2">
+                    {% for l in languages %}
+                    <div>{{ l.name }} &mdash; {{ l.proficiency }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %} {% if publications %}
+            <div class="section">
+                <div class="section-title">Publications</div>
+                {% for p in publications %}
+                <div class="entry">
+                    <div class="entry-title">{{ p.name }}</div>
+                    <div class="entry-sub">
+                        {{ p.publisher }}{% if p.url %} &bull;
+                        <a href="{{ p.url }}">{{ p.url }}</a>{% endif %}
+                    </div>
+                    <div class="entry-date">{{ p.published_on }}</div>
+                    <div class="entry-desc">{{ p.description }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %} {% if honors %}
+            <div class="section">
+                <div class="section-title">Honors &amp; Awards</div>
+                {% for h in honors %}
+                <div class="entry">
+                    <div class="entry-title">{{ h.title }}</div>
+                    <div class="entry-date">{{ h.issued_on }}</div>
+                    <div class="entry-desc">{{ h.description }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </body>
+</html>
