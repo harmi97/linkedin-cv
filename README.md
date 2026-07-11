@@ -35,4 +35,4 @@ python3 main.py <path-to-linkedin-zip>
 
 ## Sample Output
 
-See a [sample generated CV](samples/output/basic.html) for reference.
+See a [generated samples](https://harmi97.github.io/linkedin-cv/) for reference.
