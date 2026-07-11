@@ -26,11 +26,12 @@ python3 main.py <path-to-linkedin-zip>
 
 ## Parameters
 
-| Argument        | Description                                                                 |
-| --------------- | --------------------------------------------------------------------------- |
+| Argument        | Description                                                                                  |
+| --------------- | -------------------------------------------------------------------------------------------- |
 | `zip_path`      | Path to the LinkedIn data export ZIP file (positional, required unless `--test-run` is used) |
-| `--output_file` | Path for the generated CV HTML. Default: `cv.html` in the current directory |
-| `--test-run`    | Generate a CV using sample data from `samples/input/` (output: `cv.html`)   |
+| `--output-file` | Path for the generated CV HTML. Default: `cv.html` in the current directory                  |
+| `--font`        | Font to use for the CV. Default: `Calibri`                                                   |
+| `--test-run`    | Generate a CV using sample data from `samples/input/` (output: `cv.html`)                    |
 
 ## Sample Output
 

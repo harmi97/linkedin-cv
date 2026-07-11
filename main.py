@@ -1,11 +1,12 @@
-import argparse
 import csv
 import re
 import tempfile
 import zipfile
 from pathlib import Path
+from typing import Annotated
 
 import jinja2
+import typer
 
 FILES_TO_EXTRACT = [
     "Skills.csv",
@@ -87,9 +88,27 @@ def extract_files(zip_path: Path, tmpdir: str) -> dict[str, Path]:
     return extracted
 
 
-def main(zip_path: str | None, output_file: str | None = None, test_run: bool = False):
+app = typer.Typer(help="Creates a CV from a LinkedIn ZIP file")
+
+
+@app.command()
+def main(
+    zip_path: Annotated[
+        str | None, typer.Argument(help="Path to the LinkedIn ZIP file")
+    ] = None,
+    output_file: Annotated[
+        str, typer.Option("--output-file", "-o", help="Path for the generated CV HTML")
+    ] = "cv.html",
+    test_run: Annotated[
+        bool,
+        typer.Option("--test-run", help="Run with sample data from samples/input/"),
+    ] = False,
+    font: Annotated[
+        str, typer.Option("--font", help="Font to use for the CV")
+    ] = "Calibri",
+):
     if not test_run and not zip_path:
-        parser.error("zip_path is required when --test-run is not used")
+        raise typer.BadParameter("zip_path is required when --test-run is not used")
 
     if test_run:
         samples_dir = Path("samples/input")
@@ -120,23 +139,12 @@ def main(zip_path: str | None, output_file: str | None = None, test_run: bool = 
             extracted = extract_files(zip_path_validated, tmpdir)
             data = load_data(extracted)
 
-        output = Path(output_file) if output_file else Path("cv.html")
-
+        output = Path(output_file)
+    data["font"] = f'"{font}"'
     html = render(Path(TEMPLATES["basic"]), data)
     output.write_text(html, encoding="utf-8")
     print(f"CV generated: {output.resolve()}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        prog="Linkedin CV", description="Creates a CV from a LinkedIn ZIP file"
-    )
-    parser.add_argument("zip_path", nargs="?", help="Path to the LinkedIn ZIP file")
-    parser.add_argument(
-        "--output_file", help="Path for the generated CV HTML (default: cv.html)"
-    )
-    parser.add_argument(
-        "--test-run", action="store_true", help="Run with sample data from samples/input/"
-    )
-    args = parser.parse_args()
-    main(zip_path=args.zip_path, output_file=args.output_file, test_run=args.test_run)
+    app()
